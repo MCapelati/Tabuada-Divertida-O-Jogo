@@ -1,0 +1,5 @@
+# Diretórios de ambiente / editores
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabuada Turbo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800&display=swap">
+<style>
+  :root{
+    --bg:#FBF7FF;
+    --bg-blob-1:#FFE3EE;
+    --bg-blob-2:#DDF3EA;
+    --bg-blob-3:#E4ECFF;
+    --card:#FFFFFF;
+    --card-edge:#EFE8FA;
+    --ink:#3E356B;
+    --ink-soft:#7D74A8;
+    --pink:#FF8FB1;
+    --mint:#63D6AE;
+    --sky:#7FBEFF;
+    --peach:#FFB877;
+    --lilac:#B9A2FF;
+    --sun:#FFD65C;
+    --good:#3FBF8F;
+    --good-bg:#E4F8EF;
+    --bad:#FF7A7A;
+    --bad-bg:#FFE9E9;
+    --shadow:0 18px 40px -18px rgba(96,74,160,.45);
+    --shadow-btn:0 8px 0 -1px rgba(93,72,150,.22);
+    font-family:"Nunito","Comic Sans MS","Trebuchet MS",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#221B3A;
+      --bg-blob-1:#3A2748;
+      --bg-blob-2:#213C39;
+      --bg-blob-3:#26314F;
+      --card:#2E2650;
+      --card-edge:#43396B;
+      --ink:#F3EEFF;
+      --ink-soft:#B4A9DA;
+      --good-bg:#1E3F35;
+      --bad-bg:#4A2A2E;
+      --shadow:0 18px 44px -16px rgba(0,0,0,.55);
+      --shadow-btn:0 8px 0 -1px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#221B3A;
+    --bg-blob-1:#3A2748;
+    --bg-blob-2:#213C39;
+    --bg-blob-3:#26314F;
+    --card:#2E2650;
+    --card-edge:#43396B;
+    --ink:#F3EEFF;
+    --ink-soft:#B4A9DA;
+    --good-bg:#1E3F35;
+    --bad-bg:#4A2A2E;
+    --shadow:0 18px 44px -16px rgba(0,0,0,.55);
+    --shadow-btn:0 8px 0 -1px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:clamp(12px,3vw,32px);
+    position:relative;
+    overflow-x:hidden;
+  }
+  .blob{position:fixed;border-radius:50%;filter:blur(8px);opacity:.7;z-index:0;pointer-events:none}
+  .blob.b1{width:44vw;height:44vw;background:var(--bg-blob-1);top:-14vw;left:-12vw}
+  .blob.b2{width:38vw;height:38vw;background:var(--bg-blob-2);bottom:-16vw;right:-10vw}
+  .blob.b3{width:30vw;height:30vw;background:var(--bg-blob-3);bottom:20vh;left:-14vw}
+
+  .card{
+    position:relative;
+    z-index:1;
+    width:min(640px,100%);
+    background:var(--card);
+    border:2px solid var(--card-edge);
+    border-radius:32px;
+    box-shadow:var(--shadow);
+    padding:clamp(20px,4vw,40px);
+    display:flex;
+    flex-direction:column;
+    gap:clamp(16px,2.6vw,26px);
+  }
+
+  /* ---- timer ---- */
+  .timer{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+  }
+  .timer .clock{font-size:clamp(30px,7vw,44px)}
+  .timer .num{
+    font-size:clamp(52px,13vw,84px);
+    font-weight:800;
+    line-height:1;
+    color:var(--mint);
+    font-variant-numeric:tabular-nums;
+    transition:color .3s;
+  }
+  .timer.warn .num{color:var(--sun)}
+  .timer.danger .num{color:var(--bad);animation:pulse .7s ease-in-out infinite}
+  .track{
+    height:14px;border-radius:999px;background:var(--card-edge);overflow:hidden;
+  }
+  .track > i{
+    display:block;height:100%;width:100%;border-radius:999px;
+    background:linear-gradient(90deg,var(--mint),var(--sky));
+    transform-origin:left;transition:transform 1s linear,background .3s;
+  }
+  .timer.warn ~ .track > i{background:linear-gradient(90deg,var(--sun),var(--peach))}
+  .timer.danger ~ .track > i{background:linear-gradient(90deg,var(--bad),var(--pink))}
+
+  /* ---- score row ---- */
+  .score{
+    text-align:center;
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+    font-size:clamp(22px,5vw,30px);
+    font-weight:700;
+    color:var(--lilac);
+  }
+  .score b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+  /* ---- question ---- */
+  .qwrap{text-align:center;display:flex;flex-direction:column;gap:8px}
+  .progress{
+    font-size:clamp(13px,3.2vw,16px);
+    font-weight:800;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .question{
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+    font-weight:800;
+    font-size:clamp(44px,12vw,74px);
+    line-height:1.05;
+    color:var(--pink);
+    text-wrap:balance;
+  }
+  .question .eq{color:var(--sky)}
+  .question .q{color:var(--peach)}
+  .pop{animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+
+  /* ---- options ---- */
+  .options{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:clamp(8px,1.8vw,14px);
+  }
+  .opt{
+    -webkit-appearance:none;appearance:none;border:none;cursor:pointer;
+    background:var(--c);
+    border-radius:20px;
+    padding:clamp(12px,2.4vw,18px) 4px clamp(10px,2vw,14px);
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    color:#3a2f5e;
+    box-shadow:var(--shadow-btn);
+    transition:transform .12s ease,box-shadow .12s ease,filter .2s;
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+  }
+  .opt .key{
+    font-size:clamp(11px,2.6vw,13px);
+    font-weight:700;
+    background:rgba(255,255,255,.6);
+    color:#4a3d75;
+    border-radius:999px;
+    padding:2px 9px;
+    letter-spacing:.03em;
+  }
+  .opt .val{font-size:clamp(26px,6.5vw,40px);font-weight:800;font-variant-numeric:tabular-nums}
+  .opt:hover:not(:disabled){transform:translateY(-3px)}
+  .opt:active:not(:disabled){transform:translateY(2px);box-shadow:0 3px 0 -1px rgba(93,72,150,.22)}
+  .opt:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
+  .opt:disabled{cursor:default}
+  .opt.dim{filter:grayscale(.6) opacity(.45)}
+  .opt.right{background:var(--good);color:#fff;animation:pulse .5s ease}
+  .opt.wrong{background:var(--bad);color:#fff;animation:shake .4s ease}
+
+  .opt:nth-child(1){--c:var(--pink)}
+  .opt:nth-child(2){--c:var(--sky)}
+  .opt:nth-child(3){--c:var(--sun)}
+  .opt:nth-child(4){--c:var(--mint)}
+  .opt:nth-child(5){--c:var(--lilac)}
+
+  /* ---- feedback ---- */
+  .feedback{
+    text-align:center;
+    min-height:1.6em;
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+    font-weight:700;
+    font-size:clamp(18px,4.4vw,24px);
+  }
+  .feedback.good{color:var(--good)}
+  .feedback.bad{color:var(--bad)}
+
+  /* ---- record ---- */
+  .record{
+    text-align:center;
+    border-top:2px dashed var(--card-edge);
+    padding-top:clamp(12px,2.4vw,18px);
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+    font-weight:700;
+    font-size:clamp(18px,4.4vw,24px);
+    color:var(--ink-soft);
+  }
+  .record b{color:var(--sun);font-variant-numeric:tabular-nums}
+
+  /* ---- end screen ---- */
+  .end{text-align:center;display:flex;flex-direction:column;gap:clamp(12px,2.6vw,20px)}
+  .end h1{
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+    font-weight:800;
+    font-size:clamp(34px,9vw,52px);
+    color:var(--pink);
+    text-wrap:balance;
+  }
+  .end .big{
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+    font-size:clamp(20px,5vw,26px);
+    font-weight:700;
+    color:var(--ink);
+  }
+  .end .big b{color:var(--lilac);font-variant-numeric:tabular-nums}
+  .end .newrec{color:var(--good);font-weight:800;font-size:clamp(20px,5vw,28px);animation:pop .4s ease}
+  .end .msg{color:var(--ink-soft);font-size:clamp(16px,4vw,20px);font-weight:700}
+  .again{
+    -webkit-appearance:none;appearance:none;border:none;cursor:pointer;
+    align-self:center;
+    background:linear-gradient(180deg,var(--mint),var(--sky));
+    color:#25324a;
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+    font-weight:800;
+    font-size:clamp(20px,5vw,26px);
+    padding:16px 34px;
+    border-radius:999px;
+    box-shadow:var(--shadow-btn);
+    transition:transform .12s ease;
+  }
+  .again:hover{transform:translateY(-3px)}
+  .again:active{transform:translateY(2px)}
+  .again:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
+
+  /* ---- start overlay ---- */
+  .overlay{
+    position:fixed;
+    inset:0;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:rgba(62,53,107,.28);
+    -webkit-backdrop-filter:blur(9px);
+    backdrop-filter:blur(9px);
+    animation:fade .25s ease;
+  }
+  .startbox{
+    background:var(--card);
+    border:2px solid var(--card-edge);
+    border-radius:32px;
+    box-shadow:var(--shadow);
+    padding:clamp(28px,6vw,48px);
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:clamp(14px,3vw,22px);
+    max-width:440px;
+    width:100%;
+    animation:pop .35s cubic-bezier(.2,1.4,.4,1);
+  }
+  .startbox h1{
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+    font-weight:800;
+    font-size:clamp(34px,9vw,50px);
+    color:var(--pink);
+    line-height:1.05;
+    text-wrap:balance;
+  }
+  .startbox p{
+    color:var(--ink-soft);
+    font-weight:700;
+    font-size:clamp(15px,4vw,19px);
+    line-height:1.4;
+  }
+  .startbtn{
+    -webkit-appearance:none;appearance:none;border:none;cursor:pointer;
+    background:linear-gradient(180deg,var(--mint),var(--sky));
+    color:#22314a;
+    font-family:"Baloo 2","Comic Sans MS",cursive;
+    font-weight:800;
+    font-size:clamp(28px,8vw,40px);
+    padding:clamp(16px,3.5vw,22px) clamp(40px,12vw,68px);
+    border-radius:999px;
+    box-shadow:var(--shadow-btn);
+    transition:transform .12s ease;
+  }
+  .startbtn:hover{transform:translateY(-3px) scale(1.02)}
+  .startbtn:active{transform:translateY(2px)}
+  .startbtn:focus-visible{outline:4px solid var(--ink);outline-offset:4px}
+
+  [hidden]{display:none!important}
+
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+  @media (max-width:460px){
+    .options{grid-template-columns:repeat(3,1fr)}
+    .opt:nth-child(4){--c:var(--mint)}
+    .opt:nth-child(5){--c:var(--lilac)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <main class="card">
+    <!-- GAME -->
+    <section id="game">
+      <div class="timer" id="timer">
+        <span class="clock">⏱️</span>
+        <span class="num" id="time">60</span>
+      </div>
+      <div class="track"><i id="bar"></i></div>
+
+      <p class="score">⭐ Pontos: <b id="score">0</b></p>
+
+      <div class="qwrap">
+        <p class="progress" id="progress">Pergunta 1 de 10</p>
+        <p class="question" id="question" aria-live="polite"></p>
+      </div>
+
+      <div class="options" id="options"></div>
+
+      <p class="feedback" id="feedback" aria-live="assertive"></p>
+
+      <p class="record">🏆 Recorde da sessão: <b id="record">0</b></p>
+    </section>
+
+    <!-- END -->
+    <section class="end" id="end" hidden>
+      <h1 id="endTitle">Fim de jogo! 🎉</h1>
+      <p class="newrec" id="newRec" hidden>🎉 Novo recorde!</p>
+      <p class="big">Você fez <b id="finalScore">0</b> pontos</p>
+      <p class="big">Acertos: <b id="finalHits">0</b> de 10</p>
+      <p class="msg" id="endMsg"></p>
+      <button class="again" id="again">Jogar de novo 🚀</button>
+      <p class="record">🏆 Recorde da sessão: <b id="record2">0</b></p>
+    </section>
+  </main>
+
+  <div class="overlay" id="overlay">
+    <div class="startbox" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+      <h1 id="startTitle">Tabuada Turbo ✖️🌈</h1>
+      <p>10 perguntas de tabuada.<br>Responda rápido: quanto mais segundos sobrarem, mais pontos você ganha!</p>
+      <button class="startbtn" id="startBtn" type="button">Começar 🚀</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  var QUESTIONS_PER_SESSION = 10;
+  var START_TIME = 60;
+
+  var el = {
+    game: document.getElementById("game"),
+    end: document.getElementById("end"),
+    timer: document.getElementById("timer"),
+    time: document.getElementById("time"),
+    bar: document.getElementById("bar"),
+    score: document.getElementById("score"),
+    progress: document.getElementById("progress"),
+    question: document.getElementById("question"),
+    options: document.getElementById("options"),
+    feedback: document.getElementById("feedback"),
+    record: document.getElementById("record"),
+    record2: document.getElementById("record2"),
+    endTitle: document.getElementById("endTitle"),
+    newRec: document.getElementById("newRec"),
+    finalScore: document.getElementById("finalScore"),
+    finalHits: document.getElementById("finalHits"),
+    endMsg: document.getElementById("endMsg"),
+    again: document.getElementById("again"),
+    overlay: document.getElementById("overlay"),
+    startBtn: document.getElementById("startBtn")
+  };
+
+  var record = 0;          // recorde da sessão (só em memória)
+  var score = 0;
+  var hits = 0;
+  var qIndex = 0;
+  var timeLeft = START_TIME;
+  var tick = null;
+  var answered = false;
+  var current = null;      // {a,b,answer,options:[]}
+  var lastPair = "";
+
+  function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  function makeQuestion(){
+    var a, b, key;
+    do {
+      a = randInt(2, 9);
+      b = randInt(1, 10);
+      key = a + "x" + b;
+    } while (key === lastPair);
+    lastPair = key;
+
+    var answer = a * b;
+    var pool = {};
+    pool[answer] = true;
+    var candidates = [
+      a * (b + 1), a * (b - 1),
+      (a + 1) * b, (a - 1) * b,
+      answer + a, answer - a,
+      answer + 1, answer - 1,
+      answer + 2, answer - 2
+    ];
+    var wrong = [];
+    for (var i = 0; i < candidates.length && wrong.length < 4; i++){
+      var c = candidates[i];
+      if (c > 0 && !pool[c]){ pool[c] = true; wrong.push(c); }
+    }
+    while (wrong.length < 4){
+      var r = randInt(1, 100);
+      if (!pool[r]){ pool[r] = true; wrong.push(r); }
+    }
+
+    var opts = wrong.concat([answer]);
+    for (var j = opts.length - 1; j > 0; j--){       // Fisher–Yates
+      var k = Math.floor(Math.random() * (j + 1));
+      var t = opts[j]; opts[j] = opts[k]; opts[k] = t;
+    }
+    return { a:a, b:b, answer:answer, options:opts };
+  }
+
+  function renderTimer(){
+    el.time.textContent = timeLeft;
+    el.bar.style.transform = "scaleX(" + (timeLeft / START_TIME) + ")";
+    el.timer.classList.toggle("warn", timeLeft <= 20 && timeLeft > 10);
+    el.timer.classList.toggle("danger", timeLeft <= 10);
+  }
+
+  function startTimer(){
+    stopTimer();
+    tick = setInterval(function(){
+      timeLeft--;
+      renderTimer();
+      if (timeLeft <= 0){
+        stopTimer();
+        timeUp();
+      }
+    }, 1000);
+  }
+  function stopTimer(){ if (tick){ clearInterval(tick); tick = null; } }
+
+  function loadQuestion(autoStart){
+    answered = false;
+    current = makeQuestion();
+    timeLeft = START_TIME;
+    renderTimer();
+
+    el.progress.textContent = "Pergunta " + (qIndex + 1) + " de " + QUESTIONS_PER_SESSION;
+    el.question.innerHTML = current.a + " <span class=\"eq\">×</span> " + current.b +
+      " <span class=\"eq\">=</span> <span class=\"q\">?</span>";
+    el.question.classList.remove("pop");
+    void el.question.offsetWidth;
+    el.question.classList.add("pop");
+
+    el.feedback.textContent = "";
+    el.feedback.className = "feedback";
+
+    el.options.innerHTML = "";
+    current.options.forEach(function(value, i){
+      var btn = document.createElement("button");
+      btn.className = "opt";
+      btn.type = "button";
+      btn.setAttribute("data-value", value);
+      btn.innerHTML = "<span class=\"key\">tecla " + (i + 1) + "</span><span class=\"val\">" + value + "</span>";
+      btn.addEventListener("click", function(){ choose(value, btn); });
+      el.options.appendChild(btn);
+    });
+
+    if (autoStart !== false) startTimer();
+  }
+
+  function begin(){
+    el.overlay.hidden = true;
+    startTimer();
+  }
+
+  function lockOptions(){
+    var btns = el.options.querySelectorAll(".opt");
+    for (var i = 0; i < btns.length; i++) btns[i].disabled = true;
+    return btns;
+  }
+
+  function revealAnswer(chosenBtn, isRight){
+    var btns = lockOptions();
+    for (var i = 0; i < btns.length; i++){
+      var v = Number(btns[i].getAttribute("data-value"));
+      if (v === current.answer) btns[i].classList.add("right");
+      else if (btns[i] === chosenBtn) btns[i].classList.add("wrong");
+      else btns[i].classList.add("dim");
+    }
+  }
+
+  function choose(value, btn){
+    if (answered) return;
+    answered = true;
+    stopTimer();
+
+    if (value === current.answer){
+      var gained = timeLeft;
+      score += gained;
+      hits++;
+      el.score.textContent = score;
+      el.feedback.textContent = "Boa! +" + gained + " pontos 🌟";
+      el.feedback.className = "feedback good";
+      revealAnswer(btn, true);
+      setTimeout(next, 950);
+    } else {
+      el.feedback.textContent = "Quase! " + current.a + " × " + current.b + " = " + current.answer;
+      el.feedback.className = "feedback bad";
+      revealAnswer(btn, false);
+      setTimeout(next, 1500);
+    }
+  }
+
+  function timeUp(){
+    if (answered) return;
+    answered = true;
+    el.feedback.textContent = "Tempo! " + current.a + " × " + current.b + " = " + current.answer;
+    el.feedback.className = "feedback bad";
+    revealAnswer(null, false);
+    setTimeout(next, 1500);
+  }
+
+  function next(){
+    qIndex++;
+    if (qIndex >= QUESTIONS_PER_SESSION) finish();
+    else loadQuestion();
+  }
+
+  function finish(){
+    stopTimer();
+    var beat = score > record;
+    if (beat) record = score;
+    el.record.textContent = record;
+    el.record2.textContent = record;
+
+    el.finalScore.textContent = score;
+    el.finalHits.textContent = hits;
+    el.newRec.hidden = !beat;
+
+    var msg;
+    if (hits === 10) msg = "PERFEITO! Você é craque na tabuada! 🏆";
+    else if (hits >= 8) msg = "Uau! Você manda muito bem! 💪";
+    else if (hits >= 5) msg = "Muito bom! Continue treinando! 😄";
+    else msg = "Boa tentativa! Bora treinar mais um pouco! 🌈";
+    el.endMsg.textContent = msg;
+    el.endTitle.textContent = beat ? "Novo recorde! 🎉" : "Fim de jogo! 🎉";
+
+    el.game.hidden = true;
+    el.end.hidden = false;
+    el.again.focus();
+  }
+
+  function startSession(){
+    score = 0; hits = 0; qIndex = 0;
+    el.score.textContent = "0";
+    el.record.textContent = record;
+    el.end.hidden = true;
+    el.game.hidden = false;
+    loadQuestion(false);
+    el.overlay.hidden = false;
+    el.startBtn.focus();
+  }
+
+  // teclado: 1..5 responde, Enter/Espaço reinicia na tela final
+  document.addEventListener("keydown", function(e){
+    if (!el.overlay.hidden){
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); begin(); }
+      return;
+    }
+    if (!el.end.hidden){
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); startSession(); }
+      return;
+    }
+    if (e.key >= "1" && e.key <= "5"){
+      var btns = el.options.querySelectorAll(".opt");
+      var idx = Number(e.key) - 1;
+      if (btns[idx] && !btns[idx].disabled){
+        btns[idx].click();
+      }
+    }
+  });
+
+  el.again.addEventListener("click", startSession);
+  el.startBtn.addEventListener("click", begin);
+
+  startSession();
+})();
+</script>
+</body>
+</html>
