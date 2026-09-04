@@ -12,8 +12,10 @@ multiplication tables (factors 2–9). Portuguese (pt-BR) UI, pastel kid-friendl
 There is no build, package manager, test runner, or linter. The entire app is `index.html`.
 
 - **Run:** open `index.html` in a browser (`start index.html` on Windows).
-- **Deploy / share:** published as a Claude Artifact at
-  `https://claude.ai/code/artifact/8bb7ed18-dfde-41fd-b070-f5c6a911b5d5`.
+- **Public site:** served by GitHub Pages from `main` / root at
+  `https://mcapelati.github.io/Tabuada-Divertida-O-Jogo/` — every push to `main` redeploys it.
+- **Also published as a Claude Artifact** at
+  `https://claude.ai/code/artifact/8bb7ed18-dfde-41fd-b070-f5c6a911b5d5` (kept in sync manually).
 
 ## Editing workflow (important)
 

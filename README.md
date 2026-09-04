@@ -3,7 +3,7 @@
 Um joguinho web para ajudar crianças (por volta dos 10 anos) a **decorar a tabuada de 2 a 9**
 de um jeito leve e divertido.
 
-👉 **Jogue online:** <https://claude.ai/code/artifact/8bb7ed18-dfde-41fd-b070-f5c6a911b5d5>
+👉 **Jogue online:** <https://mcapelati.github.io/Tabuada-Divertida-O-Jogo/>
 
 ## Por que este aplicativo existe
 
